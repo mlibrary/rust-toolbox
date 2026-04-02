@@ -1,12 +1,23 @@
+// Rust DevContainer configuration for rust-toolbox
+// For more customization options, see https://containers.dev/implementors/json_reference
 {
-  "name": "Rust Toolbox",
-  "image": "mcr.microsoft.com/devcontainers/rust:1-1-bookworm",
-  "features": {
-    "ghcr.io/devcontainers/features/common-utils:1": {}
-  },
+  "name": "Rust",
+  "image": "mcr.microsoft.com/devcontainers/rust:latest",
+
   "customizations": {
     "jetbrains": {
-      "plugins": ["org.rust-lang.rustrover"]
+      "backend": "RustRover",
+      "settings": {
+      },
+      "plugins": [
+      ]
+    }
+  },
+  "features": {
+    "ghcr.io/devcontainers/features/git": {},
+    "ghcr.io/devcontainers/features/rust": {
+      "version": "latest",
+      "profile": "default"
     }
   },
   "remoteUser": "vscode"
