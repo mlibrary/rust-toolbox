@@ -17,11 +17,12 @@
   },
   "features": {
     "ghcr.io/devcontainers/features/git": {},
+    "ghcr.io/devcontainers/features/node:1": {},
     "ghcr.io/devcontainers/features/rust": {
       "version": "latest",
       "profile": "default"
     }
   },
-  "postCreateCommand": "cargo install --locked cargo-nextest",
+  "postCreateCommand": "cargo install --locked cargo-nextest && npm install -g openclaw",
   "remoteUser": "vscode"
 }
