@@ -20,5 +20,6 @@
       "profile": "default"
     }
   },
+  "postCreateCommand": "cargo install --locked cargo-nextest",
   "remoteUser": "vscode"
 }
