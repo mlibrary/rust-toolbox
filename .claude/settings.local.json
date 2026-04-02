@@ -2,7 +2,8 @@
   "permissions": {
     "allow": [
       "Bash(cargo new:*)",
-      "Bash(cargo metadata:*)"
+      "Bash(cargo metadata:*)",
+      "Bash(cargo build:*)"
     ]
   }
 }
