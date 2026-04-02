@@ -1,0 +1,6 @@
+{
+  "ollama": {
+    "url": "http://host.docker.internal:11434"
+  }
+}
+
