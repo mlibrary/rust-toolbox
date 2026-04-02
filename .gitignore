@@ -1,0 +1,46 @@
+# --- Rust Basics ---
+# The target directory contains all compiled artifacts
+/target/
+# Remove cargo-generate generated files
+cargo-generate.toml
+
+# --- RustRover / JetBrains IDE ---
+# Project-specific settings
+.idea/
+# Ignore workspace-specific user settings
+.idea/workspace.xml
+.idea/usage.statistics.xml
+.idea/dictionary.xml
+.idea/shelf/
+# If you use the JetBrains HTTP Client
+.idea/httpRequests/
+
+# --- macOS Specific ---
+# General macOS files
+.DS_Store
+.AppleDouble
+.LSOverride
+# Thumbnails
+._*
+# Files that might be created on network drives or external media
+.Spotlight-V100
+.Trashes
+
+# --- Docker ---
+# Ignore local data folders if you mount volumes
+.docker/
+# If you use docker-compose overrides for local dev
+docker-compose.override.yml
+# Ignore logs
+*.log
+
+# --- Environment & Secrets ---
+# Never commit credentials or local overrides
+.env
+.env.local
+.env.*.local
+
+# --- Backup/Temporary Files ---
+*.bak
+*.swp
+*~
