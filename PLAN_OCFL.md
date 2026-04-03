@@ -7,7 +7,7 @@ This project implements a minimal but functional OCFL (Oxford Common File Layout
 
 - **ocfl_lib**: Core OCFL v1.1 library (object management, inventory, versioning)
 - **ocfl_endpoint**: HTTP API server for OCFL operations (Axum-based)
-- **ocfl_cli**: Command-line client for interacting with the endpoint
+- **ocfl_remote_cli**: Command-line client for interacting with the endpoint
 - **ocfl_bdd**: BDD (Cucumber) integration tests for end-to-end validation
 
 ---
@@ -46,7 +46,7 @@ This project implements a minimal but functional OCFL (Oxford Common File Layout
 
 ### 3. ocfl_cli
 
-- Command-line client for OCFL endpoint operations:
+- Command-line client for OCFL endpoint operations (ocfl_remote_cli):
   - `init` — Initialize repository
   - `add <object_id> <src_path>` — Add object
   - `add-version <object_id> <src_path>` — Add new version to object
@@ -119,8 +119,8 @@ cargo test -p ocfl_bdd
 # Run endpoint server
 cargo run -p ocfl_endpoint
 
-# Use CLI
-cargo run -p ocfl_cli -- add obj1 /path/to/file
+# Use remote CLI
+cargo run -p ocfl_remote_cli -- add obj1 /path/to/file
 ```
 
 ---

@@ -4,8 +4,8 @@ use reqwest::Client;
 use serde::{Deserialize, Serialize};
 
 #[derive(Parser)]
-#[command(name = "ocfl-cli")]
-#[command(about = "CLI for OCFL endpoint", long_about = None)]
+#[command(name = "ocfl-remote-cli")]
+#[command(about = "CLI for remote OCFL endpoint", long_about = None)]
 struct Cli {
     #[command(subcommand)]
     command: Commands,
