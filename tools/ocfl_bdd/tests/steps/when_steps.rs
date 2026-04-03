@@ -35,3 +35,10 @@ async fn get_list(world: &mut OcflWorld) {
     let body: ListObjectsResponse = resp.json().await.expect("invalid JSON from /list");
     world.last_object_list = body.objects;
 }
+
+#[when(expr = "I GET {string}")]
+async fn get_with_path(world: &mut OcflWorld, path: String) {
+    let url = format!("{}{}", world.base_url, path);
+    let resp = world.client.get(&url).send().await.expect("GET failed");
+    world.last_response_text = Some(resp.text().await.expect("no body"));
+}

@@ -1,6 +1,7 @@
 use axum::{extract::State, routing::{get, post}, Json, Router};
 use ocfl_lib::{OcflRepo, OcflRepoImpl};
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 use std::sync::Arc;
 
 #[derive(Clone)]
@@ -25,6 +26,7 @@ pub fn build_router(repo_root: String) -> Router {
         .route("/init", post(init_repo))
         .route("/add", post(add_object))
         .route("/list", get(list_objects))
+        .route("/get", get(get_object_endpoint))
         .with_state(state)
 }
 
@@ -51,4 +53,25 @@ async fn list_objects(State(state): State<AppState>) -> Json<ListObjectsResponse
     let repo = OcflRepoImpl::new(state.repo_root.as_str());
     let objects = repo.list_objects().unwrap_or_default();
     Json(ListObjectsResponse { objects })
+}
+
+use axum::extract::Query;
+
+async fn get_object_endpoint(
+    State(state): State<AppState>,
+    Query(params): Query<HashMap<String, String>>,
+) -> Json<&'static str> {
+    let repo = OcflRepoImpl::new(state.repo_root.as_str());
+    let object_id = match params.get("object_id") {
+        Some(v) => v,
+        None => return Json("error"),
+    };
+    let dest_path = match params.get("dest_path") {
+        Some(v) => v,
+        None => return Json("error"),
+    };
+    match repo.get_object(object_id, dest_path) {
+        Ok(_) => Json("ok"),
+        Err(_) => Json("error"),
+    }
 }

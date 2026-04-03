@@ -39,3 +39,9 @@ async fn object_list_is_empty(world: &mut OcflWorld) {
         world.last_object_list
     );
 }
+
+#[then(expr = "the file {string} exists and contains {string}")]
+async fn file_exists_and_contains(_world: &mut OcflWorld, path: String, expected: String) {
+    let content = std::fs::read_to_string(&path).expect("file does not exist");
+    assert_eq!(content, expected);
+}

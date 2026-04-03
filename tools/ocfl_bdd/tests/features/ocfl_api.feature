@@ -37,6 +37,14 @@ Feature: OCFL HTTP API
     When I add object "obj-missing" from src_path "/tmp/does_not_exist.txt"
     Then the response body is not "ok"
 
+  Scenario: Retrieve an object from the repository
+    Given the repository is initialized
+    And a source file exists at "/tmp/bdd_test_obj.txt"
+    And object "obj-get" has been added from "/tmp/bdd_test_obj.txt"
+    When I GET "/get?object_id=obj-get&dest_path=/tmp/bdd_test_obj_out.txt"
+    Then the response body is "ok"
+    And the file "/tmp/bdd_test_obj_out.txt" exists and contains "hello"
+
   Scenario: Initialize repository twice
     Given the repository is initialized
     When I POST to "/init"

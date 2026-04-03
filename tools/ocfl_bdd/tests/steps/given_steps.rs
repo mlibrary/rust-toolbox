@@ -16,12 +16,12 @@ async fn repo_is_initialized(world: &mut OcflWorld) {
 
 #[given(expr = "a source file exists at {string}")]
 async fn source_file_exists(_world: &mut OcflWorld, path: String) {
-    fs::write(&path, b"test content").expect("failed to write source file");
+    std::fs::write(&path, b"hello").expect("failed to write source file");
 }
 
 #[given(expr = "object {string} has been added from {string}")]
 async fn object_added(world: &mut OcflWorld, object_id: String, src_path: String) {
-    fs::write(&src_path, b"test content").ok();
+    std::fs::write(&src_path, b"hello").ok();
     let url = format!("{}/add", world.base_url);
     world
         .client
