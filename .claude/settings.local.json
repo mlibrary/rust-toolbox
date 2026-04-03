@@ -5,7 +5,10 @@
       "Bash(cargo metadata:*)",
       "Bash(cargo build:*)",
       "Bash(cargo check:*)",
-      "Bash(cargo test:*)"
+      "Bash(cargo test:*)",
+      "Bash(cargo tarpaulin:*)",
+      "Bash(cargo llvm-cov:*)",
+      "Bash(find /IdeaProjects/rust-toolbox/target -name *tarpaulin* -o -name *.profraw)"
     ]
   }
 }
