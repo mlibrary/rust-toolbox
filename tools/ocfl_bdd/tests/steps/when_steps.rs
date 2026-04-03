@@ -92,12 +92,26 @@ async fn i_list_versions_for_object(world: &mut OcflWorld, object_id: String) {
 
 #[when(expr = "I delete object {string}")]
 async fn i_delete_object(world: &mut OcflWorld, object_id: String) {
-    // TODO: Call the delete object endpoint or library method
-    unimplemented!("delete object");
+    let url = format!("{}/delete_object", world.base_url);
+    let resp = world
+        .client
+        .post(&url)
+        .json(&serde_json::json!({ "object_id": object_id }))
+        .send()
+        .await
+        .expect("POST /delete_object failed");
+    world.last_response_text = Some(resp.text().await.expect("no body"));
 }
 
 #[when(expr = "I delete version {string} of object {string}")]
 async fn i_delete_version_of_object(world: &mut OcflWorld, version: String, object_id: String) {
-    // TODO: Call the delete version endpoint or library method
-    unimplemented!("delete version");
+    let url = format!("{}/delete_version", world.base_url);
+    let resp = world
+        .client
+        .post(&url)
+        .json(&serde_json::json!({ "object_id": object_id, "version": version }))
+        .send()
+        .await
+        .expect("POST /delete_version failed");
+    world.last_response_text = Some(resp.text().await.expect("no body"));
 }
