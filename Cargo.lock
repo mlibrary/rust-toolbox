@@ -1150,7 +1150,6 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "cucumber",
- "ocfl_lib",
  "serde",
  "serde_json",
  "tempfile",

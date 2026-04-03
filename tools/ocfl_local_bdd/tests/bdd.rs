@@ -1,2 +1,9 @@
-// ...existing code from ocfl_bdd/tests/bdd.rs, adapted for local CLI or direct ocfl_lib as needed...
+mod steps;
 
+use cucumber::World;
+use steps::OcflWorld;
+
+#[tokio::main]
+async fn main() {
+    OcflWorld::run("tests/features").await;
+}

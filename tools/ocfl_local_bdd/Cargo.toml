@@ -2,15 +2,16 @@
 name = "ocfl_local_bdd"
 version = "0.1.0"
 edition = "2024"
-
-[dependencies]
-cucumber = { workspace = true }
-anyhow = { workspace = true }
-tokio = { workspace = true }
-ocfl_lib = { path = "../ocfl_lib" }
-serde = { workspace = true }
-serde_json = { workspace = true }
+publish = false
 
 [dev-dependencies]
-tempfile = { workspace = true }
+cucumber   = { workspace = true }
+tokio      = { workspace = true }
+anyhow     = { workspace = true }
+serde      = { workspace = true }
+serde_json = { workspace = true }
+tempfile   = { workspace = true }
 
+[[test]]
+name = "bdd"
+harness = false
