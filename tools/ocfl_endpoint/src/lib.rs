@@ -21,6 +21,17 @@ pub struct ListObjectsResponse {
     pub objects: Vec<String>,
 }
 
+#[derive(Deserialize)]
+pub struct DeleteObjectRequest {
+    pub object_id: String,
+}
+
+#[derive(Deserialize)]
+pub struct DeleteObjectVersionRequest {
+    pub object_id: String,
+    pub version: String,
+}
+
 pub fn build_router(repo_root: String) -> Router {
     let state = AppState { repo_root: Arc::new(repo_root) };
     Router::new()
@@ -31,6 +42,8 @@ pub fn build_router(repo_root: String) -> Router {
         .route("/add_version", post(add_object_version))
         .route("/inventory", get(get_inventory_endpoint))
         .route("/versions", get(list_versions_endpoint))
+        .route("/delete_object", post(delete_object_endpoint))
+        .route("/delete_version", post(delete_object_version_endpoint))
         .with_state(state)
 }
 
@@ -118,5 +131,27 @@ async fn list_versions_endpoint(
     match repo.list_versions(object_id) {
         Ok(versions) => Json(serde_json::json!({"versions": versions})),
         Err(_) => Json(serde_json::json!({"error": "not found"})),
+    }
+}
+
+async fn delete_object_endpoint(
+    State(state): State<AppState>,
+    Json(req): Json<DeleteObjectRequest>,
+) -> Json<&'static str> {
+    let repo = OcflRepoImpl::new(state.repo_root.as_str());
+    match repo.delete_object(&req.object_id) {
+        Ok(_) => Json("ok"),
+        Err(_) => Json("error"),
+    }
+}
+
+async fn delete_object_version_endpoint(
+    State(state): State<AppState>,
+    Json(req): Json<DeleteObjectVersionRequest>,
+) -> Json<&'static str> {
+    let repo = OcflRepoImpl::new(state.repo_root.as_str());
+    match repo.delete_object_version(&req.object_id, &req.version) {
+        Ok(_) => Json("ok"),
+        Err(_) => Json("error"),
     }
 }

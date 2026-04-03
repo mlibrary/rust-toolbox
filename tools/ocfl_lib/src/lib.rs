@@ -42,6 +42,10 @@ pub trait OcflRepo {
     fn get_inventory(&self, object_id: &str) -> Result<serde_json::Value>;
     /// List all version labels for an object
     fn list_versions(&self, object_id: &str) -> Result<Vec<String>>;
+    /// Delete an object from the repository
+    fn delete_object(&self, object_id: &str) -> Result<()>;
+    /// Delete a specific version of an object
+    fn delete_object_version(&self, object_id: &str, version: &str) -> Result<()>;
 }
 
 /// Default OCFL repository implementation
@@ -264,6 +268,70 @@ impl OcflRepo for OcflRepoImpl {
         let v: serde_json::Value = serde_json::from_str(&data).with_context(|| format!("Invalid inventory.json: {}", inventory_path.display()))?;
         let versions = v["versions"].as_object().ok_or_else(|| anyhow::anyhow!("No versions object"))?;
         Ok(versions.keys().cloned().collect())
+    }
+    fn delete_object(&self, object_id: &str) -> Result<()> {
+        let repo_path = Path::new(&self.root);
+        let object_root = repo_path.join(object_id);
+        if !object_root.exists() {
+            anyhow::bail!("OCFL object {} does not exist", object_id);
+        }
+        fs::remove_dir_all(&object_root).with_context(|| format!("Failed to delete object: {}", object_root.display()))?;
+        Ok(())
+    }
+    fn delete_object_version(&self, object_id: &str, version: &str) -> Result<()> {
+        let repo_path = Path::new(&self.root);
+        let object_root = repo_path.join(object_id);
+        if !object_root.exists() {
+            anyhow::bail!("OCFL object {} does not exist", object_id);
+        }
+        let inventory_path = object_root.join("inventory.json");
+        let mut inventory: Inventory = {
+            let data = fs::read_to_string(&inventory_path).with_context(|| format!("Failed to read inventory.json: {}", inventory_path.display()))?;
+            serde_json::from_str(&data).with_context(|| format!("Invalid inventory.json: {}", inventory_path.display()))?
+        };
+        let mut versions_map = inventory.versions.as_object().cloned().unwrap_or_default();
+        if !versions_map.contains_key(version) {
+            anyhow::bail!("Version {} does not exist", version);
+        }
+        versions_map.remove(version);
+        // Remove version directory if it exists
+        let version_dir = object_root.join(version);
+        if version_dir.exists() {
+            fs::remove_dir_all(&version_dir).with_context(|| format!("Failed to remove version dir: {}", version_dir.display()))?;
+        }
+        // Update head to latest version if needed
+        let mut versions: Vec<String> = versions_map.keys().cloned().collect();
+        versions.sort();
+        if let Some(last) = versions.last() {
+            inventory.head = last.clone();
+        } else {
+            // No versions left, delete inventory.json
+            fs::remove_file(&inventory_path).ok();
+            return Ok(());
+        }
+        inventory.versions = serde_json::json!(versions_map);
+        // Remove manifest entries for deleted version's files
+        // (simple: remove any manifest entry not referenced in any state)
+        let mut manifest = inventory.manifest.as_object().cloned().unwrap_or_default();
+        let mut referenced_digests = std::collections::HashSet::new();
+        for v in versions_map.values() {
+            if let Some(state) = v.get("state").and_then(|s| s.as_object()) {
+                for (digest, _paths) in state.iter() {
+                    referenced_digests.insert(digest.clone());
+                }
+            }
+        }
+        manifest.retain(|digest, _| referenced_digests.contains(digest));
+        inventory.manifest = serde_json::json!(manifest);
+        // Atomic write
+        let tmp_path = inventory_path.with_extension("json.tmp");
+        let json = serde_json::to_string_pretty(&inventory)?;
+        {
+            let mut file = File::create(&tmp_path).with_context(|| format!("Failed to create temp inventory.json: {}", tmp_path.display()))?;
+            file.write_all(json.as_bytes()).with_context(|| format!("Failed to write temp inventory.json: {}", tmp_path.display()))?;
+        }
+        fs::rename(&tmp_path, &inventory_path).with_context(|| format!("Failed to atomically write inventory.json: {}", inventory_path.display()))?;
+        Ok(())
     }
 }
 
