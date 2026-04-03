@@ -76,9 +76,10 @@ async fn add_new_version_to_object(world: &mut OcflWorld, object_id: String, fil
 }
 
 #[when(expr = "I retrieve the inventory for object {string}")]
-async fn retrieve_inventory_for_object(_world: &mut OcflWorld, _object_id: String) {
-    // TODO: Implement inventory retrieval logic
-    unimplemented!("retrieve_inventory_for_object");
+async fn retrieve_inventory_for_object(world: &mut OcflWorld, object_id: String) {
+    let url = format!("{}/inventory?object_id={}", world.base_url, object_id);
+    let resp = world.client.get(&url).send().await.expect("GET /inventory failed");
+    world.last_response_text = Some(resp.text().await.expect("no body"));
 }
 
 #[when(expr = "I list versions for object {string}")]

@@ -1139,6 +1139,7 @@ dependencies = [
  "axum",
  "ocfl_lib",
  "serde",
+ "serde_json",
  "tokio",
 ]
 

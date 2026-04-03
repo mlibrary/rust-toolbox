@@ -36,6 +36,8 @@ pub trait OcflRepo {
     fn list_objects(&self) -> Result<Vec<String>>;
     /// Add a new version to an existing object
     fn add_object_version<P: AsRef<Path>>(&self, object_id: &str, src_path: P) -> Result<()>;
+    /// Retrieve the inventory.json for an object as serde_json::Value
+    fn get_inventory(&self, object_id: &str) -> Result<serde_json::Value>;
 }
 
 /// Default OCFL repository implementation
@@ -223,6 +225,14 @@ impl OcflRepo for OcflRepoImpl {
         let json = serde_json::to_string_pretty(&inventory)?;
         file.write_all(json.as_bytes()).with_context(|| format!("Failed to write inventory.json: {}", inventory_path.display()))?;
         Ok(())
+    }
+    fn get_inventory(&self, object_id: &str) -> Result<serde_json::Value> {
+        let repo_path = Path::new(&self.root);
+        let object_root = repo_path.join(object_id);
+        let inventory_path = object_root.join("inventory.json");
+        let data = fs::read_to_string(&inventory_path).with_context(|| format!("Failed to read inventory.json: {}", inventory_path.display()))?;
+        let v: serde_json::Value = serde_json::from_str(&data).with_context(|| format!("Invalid inventory.json: {}", inventory_path.display()))?;
+        Ok(v)
     }
 }
 

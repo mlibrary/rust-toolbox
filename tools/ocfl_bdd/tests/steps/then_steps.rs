@@ -81,15 +81,26 @@ async fn inventory_should_list_both_versions(_world: &mut OcflWorld, object_id: 
 }
 
 #[then(expr = "the inventory should be valid per OCFL 1.1 spec")]
-async fn inventory_should_be_valid(_world: &mut OcflWorld) {
-    // TODO: Implement OCFL 1.1 inventory validation
-    unimplemented!("inventory_should_be_valid");
+async fn inventory_should_be_valid(world: &mut OcflWorld) {
+    let data = world.last_response_text.as_ref().expect("No inventory response");
+    let v: serde_json::Value = serde_json::from_str(data).expect("Invalid JSON");
+    // Minimal OCFL 1.1 inventory checks
+    assert!(v["id"].is_string(), "Missing id");
+    assert!(v["type_field"].is_string(), "Missing type_field");
+    assert!(v["digest_algorithm"].is_string(), "Missing digest_algorithm");
+    assert!(v["head"].is_string(), "Missing head");
+    assert!(v["manifest"].is_object(), "Missing manifest");
+    assert!(v["versions"].is_object(), "Missing versions");
 }
 
 #[then(expr = "the inventory should list all versions and content digests")]
-async fn inventory_should_list_versions_and_digests(_world: &mut OcflWorld) {
-    // TODO: Implement check for all versions and digests in inventory.json
-    unimplemented!("inventory_should_list_versions_and_digests");
+async fn inventory_should_list_versions_and_digests(world: &mut OcflWorld) {
+    let data = world.last_response_text.as_ref().expect("No inventory response");
+    let v: serde_json::Value = serde_json::from_str(data).expect("Invalid JSON");
+    let versions = v["versions"].as_object().expect("No versions object");
+    let manifest = v["manifest"].as_object().expect("No manifest object");
+    assert!(!versions.is_empty(), "No versions listed");
+    assert!(!manifest.is_empty(), "No content digests listed");
 }
 
 #[then(expr = "the result should include {string} and {string}")]

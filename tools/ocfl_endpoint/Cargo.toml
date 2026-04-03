@@ -17,3 +17,4 @@ tokio = { workspace = true }
 serde = { workspace = true }
 anyhow = { workspace = true }
 ocfl_lib = { path = "../ocfl_lib" }
+serde_json = "1.0"
