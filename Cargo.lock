@@ -646,6 +646,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "ocfl_cli"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "clap",
+ "reqwest",
+ "serde",
+ "tokio",
+]
+
+[[package]]
 name = "ocfl_endpoint"
 version = "0.1.0"
 dependencies = [
