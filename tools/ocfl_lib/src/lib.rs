@@ -17,7 +17,9 @@ use std::path::Path;
 #[derive(Serialize, Deserialize)]
 pub struct Inventory {
     pub id: String,
+    #[serde(rename = "type")]
     pub type_field: String,
+    #[serde(rename = "digestAlgorithm")]
     pub digest_algorithm: String,
     pub head: String,
     pub manifest: serde_json::Value,
@@ -89,7 +91,7 @@ impl OcflRepo for OcflRepoImpl {
         // --- BEGIN inventory.json creation ---
         let inventory = Inventory {
             id: object_id.to_string(),
-            type_field: "https://ocfl.io/1.0/spec/#inventory".to_string(),
+            type_field: "https://ocfl.io/1.1/spec/#inventory".to_string(),
             digest_algorithm: "sha512".to_string(),
             head: "v1".to_string(),
             manifest: serde_json::json!({
@@ -107,9 +109,14 @@ impl OcflRepo for OcflRepoImpl {
             }),
         };
         let inventory_path = object_root.join("inventory.json");
-        let mut file = File::create(&inventory_path).with_context(|| format!("Failed to create inventory.json: {}", inventory_path.display()))?;
+        // Atomic write: write to temp then rename
+        let tmp_path = inventory_path.with_extension("json.tmp");
         let json = serde_json::to_string_pretty(&inventory)?;
-        file.write_all(json.as_bytes()).with_context(|| format!("Failed to write inventory.json: {}", inventory_path.display()))?;
+        {
+            let mut file = File::create(&tmp_path).with_context(|| format!("Failed to create temp inventory.json: {}", tmp_path.display()))?;
+            file.write_all(json.as_bytes()).with_context(|| format!("Failed to write temp inventory.json: {}", tmp_path.display()))?;
+        }
+        fs::rename(&tmp_path, &inventory_path).with_context(|| format!("Failed to atomically write inventory.json: {}", inventory_path.display()))?;
         // --- END inventory.json creation ---
         Ok(())
     }
@@ -196,6 +203,10 @@ impl OcflRepo for OcflRepoImpl {
         versions.sort();
         let last_version = versions.last().unwrap();
         let next_version = format!("v{}", last_version[1..].parse::<u32>().unwrap() + 1);
+        // Check for duplicate version label
+        if versions.contains(&next_version) {
+            anyhow::bail!("Version label {} already exists", next_version);
+        }
         // Create new version dir
         let version_dir = object_root.join(&next_version).join("content");
         create_dir_all(&version_dir).with_context(|| format!("Failed to create version dir: {}", version_dir.display()))?;
@@ -211,6 +222,10 @@ impl OcflRepo for OcflRepoImpl {
         arr.push(serde_json::json!(format!("{}/content/{}", next_version, file_name.to_string_lossy())));
         // Update versions
         let mut versions_map = inventory.versions.as_object().cloned().unwrap_or_default();
+        // Validate required fields for previous version
+        if !versions_map[last_version].get("created").is_some() || !versions_map[last_version].get("state").is_some() {
+            anyhow::bail!("Previous version missing required fields");
+        }
         versions_map.insert(next_version.clone(), serde_json::json!({
             "created": chrono::Utc::now().to_rfc3339(),
             "message": "New version",
@@ -223,9 +238,14 @@ impl OcflRepo for OcflRepoImpl {
         inventory.head = next_version.clone();
         inventory.manifest = serde_json::json!(manifest);
         inventory.versions = serde_json::json!(versions_map);
-        let mut file = File::create(&inventory_path).with_context(|| format!("Failed to update inventory.json: {}", inventory_path.display()))?;
+        // Atomic write
+        let tmp_path = inventory_path.with_extension("json.tmp");
         let json = serde_json::to_string_pretty(&inventory)?;
-        file.write_all(json.as_bytes()).with_context(|| format!("Failed to write inventory.json: {}", inventory_path.display()))?;
+        {
+            let mut file = File::create(&tmp_path).with_context(|| format!("Failed to create temp inventory.json: {}", tmp_path.display()))?;
+            file.write_all(json.as_bytes()).with_context(|| format!("Failed to write temp inventory.json: {}", tmp_path.display()))?;
+        }
+        fs::rename(&tmp_path, &inventory_path).with_context(|| format!("Failed to atomically write inventory.json: {}", inventory_path.display()))?;
         Ok(())
     }
     fn get_inventory(&self, object_id: &str) -> Result<serde_json::Value> {

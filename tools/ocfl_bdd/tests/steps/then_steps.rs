@@ -87,8 +87,8 @@ async fn inventory_should_be_valid(world: &mut OcflWorld) {
     let v: serde_json::Value = serde_json::from_str(data).expect("Invalid JSON");
     // Minimal OCFL 1.1 inventory checks
     assert!(v["id"].is_string(), "Missing id");
-    assert!(v["type_field"].is_string(), "Missing type_field");
-    assert!(v["digest_algorithm"].is_string(), "Missing digest_algorithm");
+    assert!(v["type"].is_string(), "Missing type");
+    assert!(v["digestAlgorithm"].is_string(), "Missing digestAlgorithm");
     assert!(v["head"].is_string(), "Missing head");
     assert!(v["manifest"].is_object(), "Missing manifest");
     assert!(v["versions"].is_object(), "Missing versions");
