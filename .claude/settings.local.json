@@ -3,7 +3,8 @@
     "allow": [
       "Bash(cargo new:*)",
       "Bash(cargo metadata:*)",
-      "Bash(cargo build:*)"
+      "Bash(cargo build:*)",
+      "Bash(cargo check:*)"
     ]
   }
 }
