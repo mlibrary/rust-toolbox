@@ -31,3 +31,9 @@ async fn object_added(world: &mut OcflWorld, object_id: String, src_path: String
         .await
         .expect("POST /add failed");
 }
+
+#[given(expr = "the file {string} does not exist")]
+async fn file_does_not_exist(_world: &mut OcflWorld, path: String) {
+    let _ = std::fs::remove_file(&path);
+    let _ = std::fs::remove_dir_all(&path);
+}
