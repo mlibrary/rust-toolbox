@@ -45,8 +45,26 @@ async fn empty_ocfl_repo(world: &mut OcflWorld) {
 }
 
 #[given(expr = "an OCFL repository with object {string} at version {string}")]
-async fn repo_with_object_at_version(_world: &mut OcflWorld, _object_id: String, _version: String) {
-    // TODO: Implement setup for object at specific version
-    // This may require direct manipulation or using the API to add versions
-    unimplemented!("repo_with_object_at_version");
+async fn repo_with_object_at_version(world: &mut OcflWorld, object_id: String, version: String) {
+    // Always (re-)initialize the repo
+    let url = format!("{}/init", world.base_url);
+    world.client.post(&url).send().await.expect("POST /init failed");
+
+    // Add v1
+    let file_v1 = format!("/tmp/ocfl_bdd_{}_v1.txt", object_id);
+    std::fs::write(&file_v1, b"version1").expect("failed to write v1 file");
+    let url_add = format!("{}/add", world.base_url);
+    world.client.post(&url_add)
+        .json(&serde_json::json!({ "object_id": object_id, "src_path": file_v1 }))
+        .send().await.expect("POST /add failed");
+
+    if version == "v2" {
+        // Add v2
+        let file_v2 = format!("/tmp/ocfl_bdd_{}_v2.txt", object_id);
+        std::fs::write(&file_v2, b"version2").expect("failed to write v2 file");
+        let url_add_version = format!("{}/add_version", world.base_url);
+        world.client.post(&url_add_version)
+            .json(&serde_json::json!({ "object_id": object_id, "src_path": file_v2 }))
+            .send().await.expect("POST /add_version failed");
+    }
 }

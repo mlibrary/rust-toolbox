@@ -48,22 +48,23 @@ async fn file_exists_and_contains(_world: &mut OcflWorld, path: String, expected
 
 #[then(expr = "the object {string} should exist in the repository")]
 async fn object_should_exist_in_repo(_world: &mut OcflWorld, object_id: String) {
-    let repo_root = std::env::var("OCFL_REPO_ROOT").unwrap_or_else(|_| ".".to_string());
-    let object_path = std::path::Path::new(&repo_root).join(&object_id);
+    // Use the test repo root from the world struct
+    let repo_root = _world._repo_dir.path();
+    let object_path = repo_root.join(&object_id);
     assert!(object_path.exists(), "Object root does not exist: {}", object_path.display());
 }
 
 #[then(expr = "the inventory for object {string} should exist")]
 async fn inventory_should_exist(_world: &mut OcflWorld, object_id: String) {
-    let repo_root = std::env::var("OCFL_REPO_ROOT").unwrap_or_else(|_| ".".to_string());
-    let inventory_path = std::path::Path::new(&repo_root).join(&object_id).join("inventory.json");
+    let repo_root = _world._repo_dir.path();
+    let inventory_path = repo_root.join(&object_id).join("inventory.json");
     assert!(inventory_path.exists(), "inventory.json does not exist: {}", inventory_path.display());
 }
 
 #[then(expr = "the inventory for object {string} should indicate version {string}")]
 async fn inventory_should_indicate_version(_world: &mut OcflWorld, object_id: String, version: String) {
-    let repo_root = std::env::var("OCFL_REPO_ROOT").unwrap_or_else(|_| ".".to_string());
-    let inventory_path = std::path::Path::new(&repo_root).join(&object_id).join("inventory.json");
+    let repo_root = _world._repo_dir.path();
+    let inventory_path = repo_root.join(&object_id).join("inventory.json");
     let data = std::fs::read_to_string(&inventory_path).expect("Failed to read inventory.json");
     let v: serde_json::Value = serde_json::from_str(&data).expect("Invalid JSON");
     assert_eq!(v["head"], version, "Inventory head does not match version");
@@ -71,8 +72,8 @@ async fn inventory_should_indicate_version(_world: &mut OcflWorld, object_id: St
 
 #[then(expr = "the inventory for object {string} should list both versions {string} and {string}")]
 async fn inventory_should_list_both_versions(_world: &mut OcflWorld, object_id: String, v1: String, v2: String) {
-    let repo_root = std::env::var("OCFL_REPO_ROOT").unwrap_or_else(|_| ".".to_string());
-    let inventory_path = std::path::Path::new(&repo_root).join(&object_id).join("inventory.json");
+    let repo_root = _world._repo_dir.path();
+    let inventory_path = repo_root.join(&object_id).join("inventory.json");
     let data = std::fs::read_to_string(&inventory_path).expect("Failed to read inventory.json");
     let v: serde_json::Value = serde_json::from_str(&data).expect("Invalid JSON");
     let versions = v["versions"].as_object().expect("No versions object");
