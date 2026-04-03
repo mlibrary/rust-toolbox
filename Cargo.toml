@@ -1,6 +1,16 @@
+
 [workspace]
 resolver = "2"
-members = ["tools/*"]
+members = [
+	"tools/fetch-it",
+	"tools/ocfl_bdd",
+	"tools/ocfl_endpoint",
+	"tools/ocfl_lib",
+	"tools/ocfl_local_bdd",
+	"tools/ocfl_local_cli",
+	"tools/ocfl_remote_bdd",
+	"tools/ocfl_remote_cli"
+]
 default-members = ["tools/ocfl_lib", "tools/ocfl_endpoint", "tools/ocfl_local_cli", "tools/ocfl_remote_cli", "tools/fetch-it"]
 
 [workspace.dependencies]

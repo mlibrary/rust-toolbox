@@ -1145,6 +1145,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "ocfl_local_bdd"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "cucumber",
+ "ocfl_lib",
+ "serde",
+ "serde_json",
+ "tempfile",
+ "tokio",
+]
+
+[[package]]
 name = "ocfl_local_cli"
 version = "0.1.0"
 dependencies = [
@@ -1153,6 +1166,19 @@ dependencies = [
  "ocfl_lib",
  "serde",
  "serde_json",
+ "tokio",
+]
+
+[[package]]
+name = "ocfl_remote_bdd"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "cucumber",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "tempfile",
  "tokio",
 ]
 
