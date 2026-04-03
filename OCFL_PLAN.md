@@ -1,6 +1,6 @@
 # OCFL Implementation Plan
 
-This file tracks the step-by-step plan and progress for implementing an Oxford Common File Layout (OCFL) library, endpoint, and CLI tool in this project.
+This file tracks the step-by-step plan and progress for implementing an Oxford Common File Layout ([OCFL](https://ocfl.io/)) library, endpoint, and CLI tool in this project.
 
 ## Steps
 1. Design OCFL library API (functional, trait-based, anyhow error handling)

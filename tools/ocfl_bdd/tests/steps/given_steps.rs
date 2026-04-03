@@ -37,3 +37,16 @@ async fn file_does_not_exist(_world: &mut OcflWorld, path: String) {
     let _ = std::fs::remove_file(&path);
     let _ = std::fs::remove_dir_all(&path);
 }
+
+#[given(expr = "an empty OCFL repository")]
+async fn empty_ocfl_repo(world: &mut OcflWorld) {
+    let url = format!("{}/init", world.base_url);
+    world.client.post(&url).send().await.expect("POST /init failed");
+}
+
+#[given(expr = "an OCFL repository with object {string} at version {string}")]
+async fn repo_with_object_at_version(_world: &mut OcflWorld, _object_id: String, _version: String) {
+    // TODO: Implement setup for object at specific version
+    // This may require direct manipulation or using the API to add versions
+    unimplemented!("repo_with_object_at_version");
+}

@@ -1,10 +1,28 @@
 // OCFL v1.1 core library API skeleton
 // Functional, minimal 'unsafe', anyhow for error handling
 
+extern crate serde;
+extern crate serde_json;
+extern crate sha2;
+extern crate chrono;
+
 use anyhow::{Context, Result};
+use serde::{Serialize, Deserialize};
 use std::fs;
 use std::fs::create_dir_all;
+use std::fs::File;
+use std::io::Write;
 use std::path::Path;
+
+#[derive(Serialize, Deserialize)]
+pub struct Inventory {
+    pub id: String,
+    pub type_field: String,
+    pub digest_algorithm: String,
+    pub head: String,
+    pub manifest: serde_json::Value,
+    pub versions: serde_json::Value,
+}
 
 /// OCFL repository operations
 pub trait OcflRepo {
@@ -62,6 +80,31 @@ impl OcflRepo for OcflRepoImpl {
         let file_name = src.file_name().ok_or_else(|| anyhow::anyhow!("Source path has no file name: {}", src.display()))?;
         let dest = content_dir.join(file_name);
         fs::copy(src, &dest).with_context(|| format!("Failed to copy {} to {}", src.display(), dest.display()))?;
+        // --- BEGIN inventory.json creation ---
+        let inventory = Inventory {
+            id: object_id.to_string(),
+            type_field: "https://ocfl.io/1.0/spec/#inventory".to_string(),
+            digest_algorithm: "sha512".to_string(),
+            head: "v1".to_string(),
+            manifest: serde_json::json!({
+                format!("{}", sha512_digest(&dest)?): [format!("v1/content/{}", file_name.to_string_lossy())]
+            }),
+            versions: serde_json::json!({
+                "v1": {
+                    "created": chrono::Utc::now().to_rfc3339(),
+                    "message": "Initial version",
+                    "user": { "name": "system" },
+                    "state": {
+                        format!("{}", sha512_digest(&dest)?): [format!("content/{}", file_name.to_string_lossy())]
+                    }
+                }
+            }),
+        };
+        let inventory_path = object_root.join("inventory.json");
+        let mut file = File::create(&inventory_path).with_context(|| format!("Failed to create inventory.json: {}", inventory_path.display()))?;
+        let json = serde_json::to_string_pretty(&inventory)?;
+        file.write_all(json.as_bytes()).with_context(|| format!("Failed to write inventory.json: {}", inventory_path.display()))?;
+        // --- END inventory.json creation ---
         Ok(())
     }
     fn get_object<P: AsRef<Path>>(&self, object_id: &str, dest_path: P) -> Result<()> {
@@ -131,6 +174,21 @@ impl OcflRepo for OcflRepoImpl {
         }
         Ok(objects)
     }
+}
+
+fn sha512_digest<P: AsRef<Path>>(path: P) -> Result<String> {
+    use sha2::{Sha512, Digest};
+    use std::fs::File;
+    use std::io::{BufReader, Read};
+    let mut file = BufReader::new(File::open(path)?);
+    let mut hasher = Sha512::new();
+    let mut buf = [0u8; 4096];
+    loop {
+        let n = file.read(&mut buf)?;
+        if n == 0 { break; }
+        hasher.update(&buf[..n]);
+    }
+    Ok(format!("{:x}", hasher.finalize()))
 }
 
 #[cfg(test)]
