@@ -128,13 +128,24 @@ impl OcflRepo for OcflRepoImpl {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::fs;
 
     #[test]
     fn test_ocfl_repo_trait() {
-        let repo = OcflRepoImpl::new("/tmp/ocfl");
-        assert!(repo.init_repo("/tmp/ocfl").is_ok());
-        assert!(repo.add_object("obj1", "/tmp/file1").is_ok());
-        assert!(repo.get_object("obj1", "/tmp/out").is_ok());
-        assert!(repo.list_objects().is_ok());
+        let dir = tempfile::tempdir().expect("tempdir");
+        let root = dir.path().to_str().unwrap();
+        let repo = OcflRepoImpl::new(root);
+
+        assert!(repo.init_repo(root).is_ok());
+
+        let src = dir.path().join("file1.txt");
+        fs::write(&src, b"hello").unwrap();
+        assert!(repo.add_object("obj1", &src).is_ok());
+
+        let dest = dir.path().join("out");
+        assert!(repo.get_object("obj1", &dest).is_ok());
+
+        let objects = repo.list_objects().unwrap();
+        assert!(objects.contains(&"obj1".to_string()));
     }
 }
