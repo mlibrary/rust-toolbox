@@ -27,5 +27,18 @@ async fn post_add(world: &mut OcflWorld, object_id: String, src_path: String) {
 async fn get_with_path(world: &mut OcflWorld, path: String) {
     let url = format!("{}{}", world.base_url, path);
     let resp = world.client.get(&url).send().await.expect("GET failed");
+    if path.starts_with("/list") {
+        let content_type = resp.headers().get("content-type").and_then(|v| v.to_str().ok()).unwrap_or("");
+        if content_type.contains("application/json") {
+            #[derive(Deserialize)]
+            struct ListObjectsResponse {
+                objects: Vec<String>,
+            }
+            let body: ListObjectsResponse = resp.json().await.expect("invalid JSON from /list");
+            world.last_object_list = body.objects;
+            world.last_response_text = None;
+            return;
+        }
+    }
     world.last_response_text = Some(resp.text().await.expect("no body"));
 }
