@@ -70,9 +70,14 @@ async fn inventory_should_indicate_version(_world: &mut OcflWorld, object_id: St
 }
 
 #[then(expr = "the inventory for object {string} should list both versions {string} and {string}")]
-async fn inventory_should_list_both_versions(_world: &mut OcflWorld, _object_id: String, _v1: String, _v2: String) {
-    // TODO: Implement check for both versions in inventory.json
-    unimplemented!("inventory_should_list_both_versions");
+async fn inventory_should_list_both_versions(_world: &mut OcflWorld, object_id: String, v1: String, v2: String) {
+    let repo_root = std::env::var("OCFL_REPO_ROOT").unwrap_or_else(|_| ".".to_string());
+    let inventory_path = std::path::Path::new(&repo_root).join(&object_id).join("inventory.json");
+    let data = std::fs::read_to_string(&inventory_path).expect("Failed to read inventory.json");
+    let v: serde_json::Value = serde_json::from_str(&data).expect("Invalid JSON");
+    let versions = v["versions"].as_object().expect("No versions object");
+    assert!(versions.contains_key(&v1), "Inventory missing version {}", v1);
+    assert!(versions.contains_key(&v2), "Inventory missing version {}", v2);
 }
 
 #[then(expr = "the inventory should be valid per OCFL 1.1 spec")]

@@ -58,9 +58,21 @@ async fn add_object_with_id_and_file(world: &mut OcflWorld, object_id: String, f
 }
 
 #[when(expr = "I add a new version to object {string} with content file {string}")]
-async fn add_new_version_to_object(_world: &mut OcflWorld, _object_id: String, _file: String) {
-    // TODO: Implement version addition logic
-    unimplemented!("add_new_version_to_object");
+async fn add_new_version_to_object(world: &mut OcflWorld, object_id: String, file: String) {
+    // Write new content to the file
+    std::fs::write(&file, b"version2").ok();
+    // Call the endpoint or directly invoke the library (if available)
+    // For now, call the add_object_version method via a custom endpoint or CLI
+    // Here, we assume a custom endpoint /add_version exists (to be implemented)
+    let url = format!("{}/add_version", world.base_url);
+    let resp = world
+        .client
+        .post(&url)
+        .json(&serde_json::json!({ "object_id": object_id, "src_path": file }))
+        .send()
+        .await
+        .expect("POST /add_version failed");
+    world.last_response_text = Some(resp.text().await.expect("no body"));
 }
 
 #[when(expr = "I retrieve the inventory for object {string}")]

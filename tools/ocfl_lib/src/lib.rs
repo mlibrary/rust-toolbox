@@ -34,6 +34,8 @@ pub trait OcflRepo {
     fn get_object<P: AsRef<Path>>(&self, object_id: &str, dest_path: P) -> Result<()>;
     /// List all objects in the repository
     fn list_objects(&self) -> Result<Vec<String>>;
+    /// Add a new version to an existing object
+    fn add_object_version<P: AsRef<Path>>(&self, object_id: &str, src_path: P) -> Result<()>;
 }
 
 /// Default OCFL repository implementation
@@ -173,6 +175,54 @@ impl OcflRepo for OcflRepoImpl {
             }
         }
         Ok(objects)
+    }
+    fn add_object_version<P: AsRef<Path>>(&self, object_id: &str, src_path: P) -> Result<()> {
+        let repo_path = Path::new(&self.root);
+        let object_root = repo_path.join(object_id);
+        if !object_root.exists() {
+            anyhow::bail!("OCFL object {} does not exist", object_id);
+        }
+        let inventory_path = object_root.join("inventory.json");
+        let mut inventory: Inventory = {
+            let data = fs::read_to_string(&inventory_path).with_context(|| format!("Failed to read inventory.json: {}", inventory_path.display()))?;
+            serde_json::from_str(&data).with_context(|| format!("Invalid inventory.json: {}", inventory_path.display()))?
+        };
+        // Determine next version
+        let mut versions: Vec<String> = inventory.versions.as_object().unwrap().keys().cloned().collect();
+        versions.sort();
+        let last_version = versions.last().unwrap();
+        let next_version = format!("v{}", last_version[1..].parse::<u32>().unwrap() + 1);
+        // Create new version dir
+        let version_dir = object_root.join(&next_version).join("content");
+        create_dir_all(&version_dir).with_context(|| format!("Failed to create version dir: {}", version_dir.display()))?;
+        let src = src_path.as_ref();
+        let file_name = src.file_name().ok_or_else(|| anyhow::anyhow!("Source path has no file name: {}", src.display()))?;
+        let dest = version_dir.join(file_name);
+        fs::copy(src, &dest).with_context(|| format!("Failed to copy {} to {}", src.display(), dest.display()))?;
+        let digest = sha512_digest(&dest)?;
+        // Update manifest
+        let mut manifest = inventory.manifest.as_object().cloned().unwrap_or_default();
+        manifest.entry(digest.clone()).or_insert_with(|| serde_json::json!([]));
+        let arr = manifest.get_mut(&digest).unwrap().as_array_mut().unwrap();
+        arr.push(serde_json::json!(format!("{}/content/{}", next_version, file_name.to_string_lossy())));
+        // Update versions
+        let mut versions_map = inventory.versions.as_object().cloned().unwrap_or_default();
+        versions_map.insert(next_version.clone(), serde_json::json!({
+            "created": chrono::Utc::now().to_rfc3339(),
+            "message": "New version",
+            "user": { "name": "system" },
+            "state": {
+                digest.clone(): [format!("content/{}", file_name.to_string_lossy())]
+            }
+        }));
+        // Update inventory
+        inventory.head = next_version.clone();
+        inventory.manifest = serde_json::json!(manifest);
+        inventory.versions = serde_json::json!(versions_map);
+        let mut file = File::create(&inventory_path).with_context(|| format!("Failed to update inventory.json: {}", inventory_path.display()))?;
+        let json = serde_json::to_string_pretty(&inventory)?;
+        file.write_all(json.as_bytes()).with_context(|| format!("Failed to write inventory.json: {}", inventory_path.display()))?;
+        Ok(())
     }
 }
 
