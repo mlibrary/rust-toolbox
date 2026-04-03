@@ -10,6 +10,8 @@ This file tracks the step-by-step plan and progress for implementing an Oxford C
 5. Integrate error handling and user-friendly messages
 6. Ensure functional style, minimal 'unsafe', and aarch64-apple-darwin compatibility
 7. Run `cargo check` after every file change
+8. Run `cargo test` (unit tests) after every change — fast, no network or I/O
+9. Run `cargo test -p ocfl_bdd` (BDD integration tests) after a feature is complete
 
 ---
 
