@@ -12,8 +12,8 @@ This file tracks the step-by-step plan and progress for implementing an Oxford C
 7. Run `cargo check` after every file change
 8. Run `cargo test` (unit tests) after every change — fast, no network or I/O
 9. Run `cargo test -p ocfl_bdd` (BDD integration tests) after a feature is complete
+10. Maintain test coverage above 80% for all crates (unit + integration)
 
 ---
 
 Progress and notes will be updated as work proceeds.
-

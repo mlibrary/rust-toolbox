@@ -32,11 +32,12 @@ impl OcflRepoImpl {
 impl OcflRepo for OcflRepoImpl {
     fn init_repo<P: AsRef<Path>>(&self, path: P) -> Result<()> {
         let repo_path = path.as_ref();
-        create_dir_all(repo_path).with_context(|| format!("Failed to create repo directory: {}", repo_path.display()))?;
         let spec_file = repo_path.join("0=ocfl_1.1");
-        if !spec_file.exists() {
-            fs::write(&spec_file, "OCFL Object Root\nhttps://ocfl.io/1.1/spec/\n").with_context(|| format!("Failed to write OCFL spec file: {}", spec_file.display()))?;
+        if spec_file.exists() {
+            anyhow::bail!("OCFL repository already exists at {}", repo_path.display());
         }
+        create_dir_all(repo_path).with_context(|| format!("Failed to create repo directory: {}", repo_path.display()))?;
+        fs::write(&spec_file, "OCFL Object Root\nhttps://ocfl.io/1.1/spec/\n").with_context(|| format!("Failed to write OCFL spec file: {}", spec_file.display()))?;
         Ok(())
     }
     fn add_object<P: AsRef<Path>>(&self, object_id: &str, src_path: P) -> Result<()> {

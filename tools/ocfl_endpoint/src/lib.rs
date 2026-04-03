@@ -30,8 +30,10 @@ pub fn build_router(repo_root: String) -> Router {
 
 async fn init_repo(State(state): State<AppState>) -> Json<&'static str> {
     let repo = OcflRepoImpl::new(state.repo_root.as_str());
-    let _ = repo.init_repo(state.repo_root.as_str());
-    Json("ok")
+    match repo.init_repo(state.repo_root.as_str()) {
+        Ok(_) => Json("ok"),
+        Err(_) => Json("error"),
+    }
 }
 
 async fn add_object(
@@ -39,8 +41,10 @@ async fn add_object(
     Json(req): Json<AddObjectRequest>,
 ) -> Json<&'static str> {
     let repo = OcflRepoImpl::new(state.repo_root.as_str());
-    let _ = repo.add_object(&req.object_id, &req.src_path);
-    Json("ok")
+    match repo.add_object(&req.object_id, &req.src_path) {
+        Ok(_) => Json("ok"),
+        Err(_) => Json("error"),
+    }
 }
 
 async fn list_objects(State(state): State<AppState>) -> Json<ListObjectsResponse> {
