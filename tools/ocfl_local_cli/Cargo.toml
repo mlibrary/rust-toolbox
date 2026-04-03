@@ -1,0 +1,13 @@
+
+[package]
+name = "ocfl_local_cli"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+anyhow = { workspace = true }
+clap = { workspace = true }
+ocfl_lib = { path = "../ocfl_lib" }
+serde = { workspace = true }
+tokio = { workspace = true }
+
