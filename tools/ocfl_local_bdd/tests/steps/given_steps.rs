@@ -12,7 +12,7 @@ async fn empty_ocfl_repo(world: &mut OcflWorld) {
 #[given(expr = "object {string} has been added with content {string}")]
 async fn object_added_with_content(world: &mut OcflWorld, object_id: String, content: String) {
     let root = world._repo_dir.path().to_string_lossy().to_string();
-    let src = world._repo_dir.path().join(format!("src_{}.txt", object_id));
+    let src = world._repo_dir.path().join("v1.txt");
     std::fs::write(&src, content.as_bytes()).expect("failed to write src file");
     let src_str = src.to_string_lossy().to_string();
     let (ok, _) = run_cli(&["--repo", &root, "add", &object_id, &src_str]);

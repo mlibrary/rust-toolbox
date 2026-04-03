@@ -38,6 +38,10 @@ async fn list_all_objects(world: &mut OcflWorld) {
 #[when(expr = "I retrieve object {string} to path {string}")]
 async fn retrieve_object(world: &mut OcflWorld, object_id: String, dest: String) {
     let root = world._repo_dir.path().to_string_lossy().to_string();
+    let dest_path = std::path::Path::new(&dest);
+    if dest_path.exists() {
+        std::fs::remove_file(dest_path).ok();
+    }
     let (ok, _) = run_cli(&["--repo", &root, "get", &object_id, &dest]);
     world.last_response_text = Some(if ok { "ok".to_string() } else { "error".to_string() });
 }
