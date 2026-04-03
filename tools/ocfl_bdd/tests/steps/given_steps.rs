@@ -1,5 +1,4 @@
 use cucumber::given;
-use std::fs;
 
 use super::OcflWorld;
 
