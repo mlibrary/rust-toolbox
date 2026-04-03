@@ -24,15 +24,25 @@ impl OcflWorld {
     }
 }
 
-/// Locate the compiled ocfl_local_cli binary in the workspace target directory.
+/// Locate the compiled ocfl_local_cli binary.
+///
+/// The path is baked in at compile time by build.rs, which derives it from `OUT_DIR`.
+/// This means it always resolves to the correct target directory — including when
+/// tarpaulin uses a non-default one. If the binary is absent (e.g. a fresh coverage
+/// run), it is built on-demand via the `CARGO` env var that cargo injects at test runtime.
 pub fn cli_bin() -> std::path::PathBuf {
-    // CARGO_MANIFEST_DIR = tools/ocfl_local_bdd
-    let manifest = std::path::Path::new(env!("CARGO_MANIFEST_DIR"));
-    let workspace = manifest.parent().unwrap().parent().unwrap();
-    let bin = workspace.join("target").join("debug").join("ocfl_local_cli");
+    let bin = std::path::PathBuf::from(env!("OCFL_LOCAL_CLI_BIN"));
+    if !bin.exists() {
+        let cargo = std::env::var("CARGO").unwrap_or_else(|_| "cargo".to_string());
+        let status = std::process::Command::new(&cargo)
+            .args(["build", "-p", "ocfl_local_cli"])
+            .status()
+            .expect("failed to invoke cargo build for ocfl_local_cli");
+        assert!(status.success(), "cargo build -p ocfl_local_cli failed");
+    }
     assert!(
         bin.exists(),
-        "ocfl_local_cli binary not found at {}. Run `cargo build -p ocfl_local_cli` first.",
+        "ocfl_local_cli binary not found at {} after build",
         bin.display()
     );
     bin
