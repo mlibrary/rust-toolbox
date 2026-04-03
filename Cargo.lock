@@ -1121,17 +1121,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "ocfl_cli"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "clap",
- "reqwest",
- "serde",
- "tokio",
-]
-
-[[package]]
 name = "ocfl_endpoint"
 version = "0.1.0"
 dependencies = [
@@ -1163,6 +1152,19 @@ dependencies = [
  "clap",
  "ocfl_lib",
  "serde",
+ "serde_json",
+ "tokio",
+]
+
+[[package]]
+name = "ocfl_remote_cli"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "clap",
+ "reqwest",
+ "serde",
+ "serde_json",
  "tokio",
 ]
 
