@@ -46,12 +46,18 @@ This project implements a minimal but functional OCFL (Oxford Common File Layout
 
 ### 3. ocfl_cli
 
-- Command-line client for basic OCFL endpoint operations:
-  - `init`
-  - `add <object_id> <src_path>`
-  - `list`
+- Command-line client for OCFL endpoint operations:
+  - `init` — Initialize repository
+  - `add <object_id> <src_path>` — Add object
+  - `add-version <object_id> <src_path>` — Add new version to object
+  - `list` — List objects
+  - `get <object_id> <dest_path>` — Extract object content
+  - `inventory <object_id>` — Get inventory.json for object
+  - `versions <object_id>` — List versions for object
+  - `delete-object <object_id>` — Delete object
+  - `delete-version <object_id> <version>` — Delete version of object
 - Uses `clap` for argument parsing and `reqwest` for HTTP.
-- Can be extended to support more endpoints.
+- All endpoints are exercised by CLI commands.
 
 ### 4. ocfl_bdd
 
