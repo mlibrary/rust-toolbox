@@ -1,7 +1,9 @@
 // OCFL v1.1 core library API skeleton
 // Functional, minimal 'unsafe', anyhow for error handling
 
-use anyhow::Result;
+use anyhow::{Context, Result};
+use std::fs;
+use std::fs::create_dir_all;
 use std::path::Path;
 
 /// OCFL repository operations
@@ -28,8 +30,15 @@ impl OcflRepoImpl {
 }
 
 impl OcflRepo for OcflRepoImpl {
-    fn init_repo<P: AsRef<Path>>(&self, _path: P) -> Result<()> {
-        // TODO: Implement OCFL 1.1 repo initialization
+    fn init_repo<P: AsRef<Path>>(&self, path: P) -> Result<()> {
+        let repo_path = path.as_ref();
+        if repo_path.exists() {
+            anyhow::bail!("OCFL repository already exists at {}", repo_path.display());
+        }
+        create_dir_all(repo_path).with_context(|| format!("Failed to create repo directory: {}", repo_path.display()))?;
+        // Write OCFL spec files (ocfl_1.1, ocfl_layout, etc.)
+        let spec_file = repo_path.join("0=ocfl_1.1");
+        fs::write(&spec_file, "OCFL Object Root\nhttps://ocfl.io/1.1/spec/\n").with_context(|| format!("Failed to write OCFL spec file: {}", spec_file.display()))?;
         Ok(())
     }
     fn add_object<P: AsRef<Path>>(&self, _object_id: &str, _src_path: P) -> Result<()> {
