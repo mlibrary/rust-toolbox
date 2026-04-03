@@ -38,6 +38,8 @@ pub trait OcflRepo {
     fn add_object_version<P: AsRef<Path>>(&self, object_id: &str, src_path: P) -> Result<()>;
     /// Retrieve the inventory.json for an object as serde_json::Value
     fn get_inventory(&self, object_id: &str) -> Result<serde_json::Value>;
+    /// List all version labels for an object
+    fn list_versions(&self, object_id: &str) -> Result<Vec<String>>;
 }
 
 /// Default OCFL repository implementation
@@ -233,6 +235,15 @@ impl OcflRepo for OcflRepoImpl {
         let data = fs::read_to_string(&inventory_path).with_context(|| format!("Failed to read inventory.json: {}", inventory_path.display()))?;
         let v: serde_json::Value = serde_json::from_str(&data).with_context(|| format!("Invalid inventory.json: {}", inventory_path.display()))?;
         Ok(v)
+    }
+    fn list_versions(&self, object_id: &str) -> Result<Vec<String>> {
+        let repo_path = Path::new(&self.root);
+        let object_root = repo_path.join(object_id);
+        let inventory_path = object_root.join("inventory.json");
+        let data = fs::read_to_string(&inventory_path).with_context(|| format!("Failed to read inventory.json: {}", inventory_path.display()))?;
+        let v: serde_json::Value = serde_json::from_str(&data).with_context(|| format!("Invalid inventory.json: {}", inventory_path.display()))?;
+        let versions = v["versions"].as_object().ok_or_else(|| anyhow::anyhow!("No versions object"))?;
+        Ok(versions.keys().cloned().collect())
     }
 }
 

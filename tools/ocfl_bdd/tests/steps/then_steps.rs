@@ -105,6 +105,11 @@ async fn inventory_should_list_versions_and_digests(world: &mut OcflWorld) {
 
 #[then(expr = "the result should include {string} and {string}")]
 async fn result_should_include_versions(_world: &mut OcflWorld, _v1: String, _v2: String) {
-    // TODO: Implement check for version list result
-    unimplemented!("result_should_include_versions");
+    let data = _world.last_response_text.as_ref().expect("No response");
+    let v: serde_json::Value = serde_json::from_str(data).expect("Invalid JSON");
+    let versions = v["versions"].as_array().expect("No versions array");
+    let v1_found = versions.iter().any(|x| x == &_v1);
+    let v2_found = versions.iter().any(|x| x == &_v2);
+    assert!(v1_found, "Version {} not found in result: {:?}", _v1, versions);
+    assert!(v2_found, "Version {} not found in result: {:?}", _v2, versions);
 }

@@ -83,7 +83,10 @@ async fn retrieve_inventory_for_object(world: &mut OcflWorld, object_id: String)
 }
 
 #[when(expr = "I list versions for object {string}")]
-async fn list_versions_for_object(_world: &mut OcflWorld, _object_id: String) {
-    // TODO: Implement version listing logic
-    unimplemented!("list_versions_for_object");
+async fn i_list_versions_for_object(world: &mut OcflWorld, object_id: String) {
+    let endpoint = std::env::var("OCFL_ENDPOINT").unwrap_or_else(|_| "http://localhost:8080".to_string());
+    let url = format!("{}/versions?object_id={}", endpoint, object_id);
+    let resp = reqwest::get(&url).await.expect("request failed");
+    let text = resp.text().await.expect("no response body");
+    world.last_response_text = Some(text);
 }

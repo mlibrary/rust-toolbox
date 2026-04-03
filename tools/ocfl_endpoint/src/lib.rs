@@ -30,6 +30,7 @@ pub fn build_router(repo_root: String) -> Router {
         .route("/get", get(get_object_endpoint))
         .route("/add_version", post(add_object_version))
         .route("/inventory", get(get_inventory_endpoint))
+        .route("/versions", get(list_versions_endpoint))
         .with_state(state)
 }
 
@@ -101,6 +102,21 @@ async fn get_inventory_endpoint(
     };
     match repo.get_inventory(object_id) {
         Ok(inv) => Json(inv),
+        Err(_) => Json(serde_json::json!({"error": "not found"})),
+    }
+}
+
+async fn list_versions_endpoint(
+    State(state): State<AppState>,
+    Query(params): Query<HashMap<String, String>>,
+) -> Json<serde_json::Value> {
+    let repo = OcflRepoImpl::new(state.repo_root.as_str());
+    let object_id = match params.get("object_id") {
+        Some(v) => v,
+        None => return Json(serde_json::json!({"error": "missing object_id"})),
+    };
+    match repo.list_versions(object_id) {
+        Ok(versions) => Json(serde_json::json!({"versions": versions})),
         Err(_) => Json(serde_json::json!({"error": "not found"})),
     }
 }
