@@ -89,3 +89,15 @@ async fn i_list_versions_for_object(world: &mut OcflWorld, object_id: String) {
     let text = resp.text().await.expect("no response body");
     world.last_response_text = Some(text);
 }
+
+#[when(expr = "I delete object {string}")]
+async fn i_delete_object(world: &mut OcflWorld, object_id: String) {
+    // TODO: Call the delete object endpoint or library method
+    unimplemented!("delete object");
+}
+
+#[when(expr = "I delete version {string} of object {string}")]
+async fn i_delete_version_of_object(world: &mut OcflWorld, version: String, object_id: String) {
+    // TODO: Call the delete version endpoint or library method
+    unimplemented!("delete version");
+}

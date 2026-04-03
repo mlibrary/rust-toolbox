@@ -114,3 +114,34 @@ async fn result_should_include_versions(_world: &mut OcflWorld, _v1: String, _v2
     assert!(v1_found, "Version {} not found in result: {:?}", _v1, versions);
     assert!(v2_found, "Version {} not found in result: {:?}", _v2, versions);
 }
+
+#[then(expr = "the object {string} should not exist in the repository")]
+async fn object_should_not_exist_in_repo(_world: &mut OcflWorld, object_id: String) {
+    let repo_root = _world._repo_dir.path();
+    let object_path = repo_root.join(&object_id);
+    assert!(!object_path.exists(), "Object root still exists: {}", object_path.display());
+}
+
+#[then(expr = "the inventory for object {string} should not exist")]
+async fn inventory_should_not_exist(_world: &mut OcflWorld, object_id: String) {
+    let repo_root = _world._repo_dir.path();
+    let inventory_path = repo_root.join(&object_id).join("inventory.json");
+    assert!(!inventory_path.exists(), "inventory.json still exists: {}", inventory_path.display());
+}
+
+#[then(expr = "the inventory for object {string} should not list version {string}")]
+async fn inventory_should_not_list_version(_world: &mut OcflWorld, object_id: String, version: String) {
+    let repo_root = _world._repo_dir.path();
+    let inventory_path = repo_root.join(&object_id).join("inventory.json");
+    let data = std::fs::read_to_string(&inventory_path).expect("Failed to read inventory.json");
+    let v: serde_json::Value = serde_json::from_str(&data).expect("Invalid JSON");
+    let versions = v["versions"].as_object().expect("No versions object");
+    assert!(!versions.contains_key(&version), "Inventory still lists version {}", version);
+}
+
+#[then(expr = "the content for version {string} of object {string} should not exist")]
+async fn content_for_version_should_not_exist(_world: &mut OcflWorld, version: String, object_id: String) {
+    let repo_root = _world._repo_dir.path();
+    let content_path = repo_root.join(&object_id).join(&version);
+    assert!(!content_path.exists(), "Content for version {} still exists: {}", version, content_path.display());
+}
