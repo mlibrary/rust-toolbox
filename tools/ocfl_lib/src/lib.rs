@@ -82,13 +82,20 @@ impl OcflRepo for OcflRepoImpl {
         if dest.exists() {
             anyhow::bail!("Destination already exists: {}", dest.display());
         }
-        // For simplicity, copy all files in content_dir to dest (if dest is a dir, else copy single file)
         if content_dir.is_dir() {
-            fs::create_dir_all(dest).with_context(|| format!("Failed to create destination dir: {}", dest.display()))?;
-            for entry in fs::read_dir(&content_dir).with_context(|| format!("Failed to read content dir: {}", content_dir.display()))? {
-                let entry = entry?;
-                let file_type = entry.file_type()?;
-                if file_type.is_file() {
+            let files: Vec<_> = fs::read_dir(&content_dir)
+                .with_context(|| format!("Failed to read content dir: {}", content_dir.display()))?
+                .filter_map(|e| e.ok())
+                .filter(|e| e.file_type().map(|ft| ft.is_file()).unwrap_or(false))
+                .collect();
+            if files.len() == 1 {
+                // If only one file, copy it directly to dest (as a file)
+                let src_file = files[0].path();
+                fs::copy(&src_file, dest).with_context(|| format!("Failed to copy {} to {}", src_file.display(), dest.display()))?;
+            } else {
+                // Multiple files: copy all into dest directory
+                fs::create_dir_all(dest).with_context(|| format!("Failed to create destination dir: {}", dest.display()))?;
+                for entry in files {
                     let file_name = entry.file_name();
                     let src_file = entry.path();
                     let dest_file = dest.join(file_name);
