@@ -1106,6 +1106,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "ocfl_bdd"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "axum",
+ "cucumber",
+ "ocfl_endpoint",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "tempfile",
+ "tokio",
+]
+
+[[package]]
 name = "ocfl_endpoint"
 version = "0.1.0"
 dependencies = [
@@ -1135,6 +1150,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "cucumber",
+ "ocfl_lib",
  "serde",
  "serde_json",
  "tempfile",
